@@ -22,7 +22,7 @@ app.add_middleware(
 BACKEND_URL = "https://dev-api-gateway.aesthatiq.com/mcp-service/ask"
 
 
-@app.post("/ask")
+@app.post("/mcp-service/ask")
 async def proxy_ask(request: Request):
     """Proxy endpoint that forwards requests to the MCP backend."""
     body = await request.json()
