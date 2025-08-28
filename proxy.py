@@ -1,27 +1,33 @@
 from fastapi import FastAPI, Request
-import httpx
 from fastapi.middleware.cors import CORSMiddleware
+import httpx
+import os
 
-app = FastAPI(title="Secure Proxy", description="HTTPS proxy for MCP service")
+app = FastAPI(
+    title="Proxy API",
+    description="Proxy service that forwards requests to the backend MCP API.",
+    version="1.0.0"
+)
 
-# Allow CORS so Flutter can call it
+# Allow CORS (you can restrict this in production if needed)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # in prod, restrict to your frontend domain
+    allow_origins=["*"],  # change to your frontend domain in prod
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Your backend (NO SSL)
-MCP_URL = "http://dev-api-gateway.aesthatiq.com/mcp-service/ask"
+# Backend API URL
+BACKEND_URL = "https://dev-api-gateway.aesthatiq.com/mcp-service/ask"
+
 
 @app.post("/ask")
 async def proxy_ask(request: Request):
+    """Proxy endpoint that forwards requests to the MCP backend."""
     body = await request.json()
 
-    # Forward to non-SSL backend
-    async with httpx.AsyncClient(timeout=60.0) as client:
-        response = await client.post(MCP_URL, json=body)
+    async with httpx.AsyncClient(verify=False) as client:
+        response = await client.post(BACKEND_URL, json=body)
 
     return response.json()
